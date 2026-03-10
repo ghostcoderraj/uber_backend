@@ -2,7 +2,7 @@
   "name": "uber_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.js",
+  "main": "server.js",
   "dependencies": {
     "accepts": "^2.0.0",
     "asynckit": "^0.4.0",
@@ -119,7 +119,7 @@
     "wrappy": "^1.0.2"
   },
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
