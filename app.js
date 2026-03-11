@@ -21,6 +21,7 @@ app.get("/",(req,res)=>{
 })
 
 //Going to implementation our application api routes
-app.use("/api/v1/auth",userRoutes);
+app.use("/api/v1/users",userRoutes);
+
 
 export default app;
