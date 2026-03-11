@@ -4,6 +4,8 @@ import { registerUser } from "../controllers/user.controller.js";
 import { loginValidator } from "../validators/user.validator.js";
 import { loginUser } from "../controllers/user.controller.js";
 import { authUser } from "../middleware/auth.middleware.js";
+import { logoutUser } from "../controllers/user.controller.js";
+import { getUserProfile } from "../controllers/user.controller.js";
 
 const router = express.Router();
 

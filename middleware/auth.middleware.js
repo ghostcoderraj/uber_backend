@@ -1,7 +1,7 @@
 import userModel from "../model/user.model.js"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { message } from "statuses";
+
 
 export const authUser = async (req,res,next) => {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];

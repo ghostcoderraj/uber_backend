@@ -3,6 +3,7 @@ import userModel from "../model/user.model.js";
 import { createUser } from "../services/user.services.js";
 
 
+
 export const registerUser = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -71,4 +72,13 @@ export const loginUser = async(req,res) => {
     res.cookie("token",token);
 
     res.status(200).json({user,token})
+}
+
+export const getUserProfile = async(req,res,next) =>{
+    res.status(200).json(req.user);
+}
+
+export const logoutUser = async(req,res,next) => {
+    res.clearCookie("token");
+    res.status(200).json({message: "Logged out successfully"})
 }
