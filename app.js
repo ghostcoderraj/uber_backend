@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import { connectDB } from "./config/db.config.js";
 import userRoutes from "./routes/user.routes.js";
 import dotenv from "dotenv";
-
+import captainRoutes from "./routes/captain.routes.js"
 
 dotenv.config();
 const app = express();
@@ -22,6 +22,6 @@ app.get("/",(req,res)=>{
 
 //Going to implementation our application api routes
 app.use("/api/v1/users",userRoutes);
-
+app.use("/api/v1/captain",captainRoutes)
 
 export default app;
