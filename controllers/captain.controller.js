@@ -1,39 +1,38 @@
 import { validationResult } from "express-validator";
 import captainModel from "../model/captain.model.js";
+import { createCaptain } from "../services/captain.services.js";
 import bcrypt from "bcrypt";
-import { message } from "statuses";
-import { log } from "node:console";
-import { valid } from "semver";
-import { capitalize } from "lodash";
+
 
 export const registerCaptain = async (req,res) => {
     try{
-        const error = validationResult();
+        const error = validationResult(req);
         if(!error.isEmpty()){
             return res.status(400).json({error:error.array()})
         }
 
-        const {fullname,email,password,vehicle} = req.body;
+        const {fullname,email,password,vehicles} = req.body;
 
         const iscaptainAlreadyExists = await captainModel.findOne({email});
+        
         if(iscaptainAlreadyExists){
             return res.status(400).json({message:"Captain already exists"});
         }
         
-        const hashedPassword = await captainModel.hashedPassword(password);
+        const hashPassword = await captainModel.hashPassword(password);
 
         const captain = await createCaptain({
-            firstname:fullname.firstname,
-            lastname:lastname.lastname,
+            firstname:fullname.firstname, 
+            lastname:fullname.lastname,
             email,
-            password:hashedPassword,
-            color:vehicle.color,
-            plate:vehicle.plate,
-            capacity:vehicle.capacity,
-            vehicleType:vehicle.vehicleType,
+            password:hashPassword,
+            color:vehicles.color,
+            plate:vehicles.plate,
+            capacity:vehicles.capacity,
+            vehicleType:vehicles.vehicleType,
         })
         
-        const token = captain.generateAututhToken();
+        const token = captain.generateAuthToken();
         return res.status(201).json({token,captain})
 
     }catch(error){
@@ -51,7 +50,13 @@ export const loginCaptain = async(req,res)=>{
 
         const {email,password} = req.body;
 
-        const captain = await captainModel.findOne({email});
+
+        // Modified this line to explicity select the password field
+        const captain = await captainModel.findOne({email}).select("+password");
+        
+        if(!captain){
+            return res.status(400).json({message:"Invalid Credentials"})
+        }
 
         const isMatch = await captain.comparePassword(password);
 
@@ -59,8 +64,11 @@ export const loginCaptain = async(req,res)=>{
             return res.status(400).json({message:"Invalid Credentials"})
         }
 
-        const token = captain.generateAututhToken();
+        const token = captain.generateAuthToken();
         res.cookie("token",token)
+
+        // Remove the password from response
+        captain.password = undefined;
 
         res.status(200).json({token,captain})
     }catch(error){
@@ -69,6 +77,11 @@ export const loginCaptain = async(req,res)=>{
     }
 }
 
-export const getCaptainProfile = async(req,res)=>[
-    
-]
+export const getCaptainProfile = async(req,res)=>{
+    res.status(200).json({captain:req.captain})
+}
+
+export const logoutCaptain = async(req,res)=>{
+    res.clearCookie("token");
+    res.status(200).json({message:"Logged Out successfully"})
+}

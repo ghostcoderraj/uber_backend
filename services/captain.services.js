@@ -1,9 +1,8 @@
-import { message } from "statuses"
-import captainModel from "../model/captain.model"
+import captainModel from "../model/captain.model.js"
 
-export const createCaptain = async(firstname,lastname,email,password,color,plate,vehicleType,capacity) => {
+export const createCaptain = async({firstname,lastname,email,password,color,plate,vehicleType,capacity}) => {
     if(!firstname || !lastname || !email || !password || !color || !plate || !vehicleType || !capacity){
-        return res.status(400).json({message:"All fields are required"})
+        throw new Error("All fields are required");
     }
 
     const captain = captainModel.create({
@@ -13,8 +12,13 @@ export const createCaptain = async(firstname,lastname,email,password,color,plate
         },
         email,
         password,
-        vehicleType,
-        capacity,
+        vehicles:{
+            color,
+            plate,
+            vehicleType,
+            capacity,
+        }
+        
 });
 return captain
-}
+}  
