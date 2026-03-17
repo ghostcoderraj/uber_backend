@@ -1,11 +1,12 @@
 import React from 'react'
+import { UserLoginForm } from '../features/user/components/user-login-form'
 
-const userLogin = () => {
+const UserLogin = () => {
   return (
-    <div>
-      <h1>User Login</h1>
+    <div className="container flex items-center justify-center min-h-screen py-8">
+      <UserLoginForm/>
     </div>
   )
 }
 
-export default userLogin
+export default UserLogin

@@ -1,20 +1,34 @@
-import {useState} from "react"
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
 import './App.css'
-import {Routes,Route} from "react-router-dom"
+import { Route, Routes } from 'react-router-dom'
+import Home from './pages/Home'
+import UserLogin from './pages/UserLogin'
+import UserRegister from './pages/UserRegister'
+import CaptainLogin from './pages/CaptainLogin'
+import CaptainRegister from './pages/CaptainRegister'
+import Layout from './features/global/components/layout'
+import Login from './pages/Login'
+import Register from './pages/Register'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
+   <>
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/user-login" element={<userLogin />} />
-      <Route path="/user-register" element={<userRegister />} />
-      <Route path="/captain-login" element={<captainLogin />} />
-      <Route path="/captain-register" element={<captainRegister />} />
-  
-    
+    <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/user-login" element={<UserLogin />} />
+        <Route path="/user-register" element={<UserRegister />} />
+        <Route path="/captain-login" element={<CaptainLogin />} />
+        <Route path="/captain-register" element={<CaptainRegister />} />
+      </Route>
     </Routes>
+   </>
   )
 }
 

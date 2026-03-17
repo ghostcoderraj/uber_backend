@@ -1,11 +1,12 @@
 import React from 'react'
+import { CaptainLoginForm } from '../features/captain/components/captain-login-form'
 
-const captainLogin = () => {
+const CaptainLogin = () => {
   return (
-    <div>
-      <h1>Captain Login</h1>
+    <div className="container flex items-center justify-center min-h-screen py-8">
+      <CaptainLoginForm />
     </div>
   )
 }
 
-export default captainLogin
+export default CaptainLogin
