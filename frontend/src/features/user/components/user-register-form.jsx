@@ -52,14 +52,14 @@ async  function onSubmit(data) {
    try {
     setIsLoading(true);
     const formattedUser = {
-      fullname:{
-        firstname:data.firstName,
-        lastname:data.lastName
+      fullname: {
+        firstname: data.firstName,
+        ...(data.lastName ? { lastname: data.lastName } : {})
       },
-      email:data.email,
-      password:data.password
+      email: data.email,
+      password: data.password
     }
-    const response = await axios.post(`http://localhost:5001/api/v1/users/register` , formattedUser)
+    const response = await axios.post(`http://localhost:8080/api/v1/users/register` , formattedUser)
     console.log(response.data);
     const Resdata = response.data;
     setUser(Resdata.user)
@@ -67,10 +67,15 @@ async  function onSubmit(data) {
     toast("Successfully User Registered")
     form.reset()
     navigate("/")
-   } catch (error) {
+    } catch (error) {
       console.log(error);
-      toast("Something went wrong ")
-   }
+      if (error.message === "Network Error") {
+        toast("Network Error: Make sure your backend server is running on port 8080");
+        return;
+      }
+      const backendError = error.response?.data?.message || error.response?.data?.error?.[0]?.msg || error.response?.data?.errors?.[0]?.msg;
+      toast(backendError || "Something went wrong during registration");
+    }
    finally{
     setIsLoading(false)
    }

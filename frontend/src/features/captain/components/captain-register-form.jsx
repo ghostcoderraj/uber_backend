@@ -2,7 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Mail, Lock, Eye, EyeOff, User, Car, Truck, Bike } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
+import axios from "axios"
+import { toast } from "sonner"
+import { CaptainDataContext } from "../context/CaptainContext"
 const captainFormSchema = z.object({
   firstName: z.string().min(2, {
     message: "First name must be at least 2 characters.",
@@ -20,6 +23,8 @@ const captainFormSchema = z.object({
   lastName: z.string().optional(),
   email: z.string().email({
     message: "Please enter a valid email address.",
+  }).regex(/@gmail\.com$/, {
+    message: "Captain email must be a @gmail.com address.",
   }),
   password: z
     .string()
@@ -38,7 +43,7 @@ const captainFormSchema = z.object({
   vehicleCapacity: z.string().min(1, {
     message: "Vehicle capacity is required.",
   }),
-  vehicleType: z.enum(["car", "auto", "bike"], {
+  vehicleType: z.enum(["car", "auto", "motorcycle"], {
     required_error: "Please select a vehicle type.",
   }),
 })
@@ -48,6 +53,8 @@ const captainFormSchema = z.object({
 export function CaptainRegisterForm() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const { captain, setCaptain } = useContext(CaptainDataContext)
 
   const form = useForm({
     resolver: zodResolver(captainFormSchema),
@@ -63,14 +70,41 @@ export function CaptainRegisterForm() {
     },
   })
 
-  function onSubmit(data) {
-    setIsLoading(true)
-    // Simulate API call
-    console.log(data)
-    setTimeout(() => {
+  async function onSubmit(data) {
+    try {
+      setIsLoading(true)
+      const payload = {
+        fullname: {
+          firstname: data.firstName,
+          ...(data.lastName ? { lastname: data.lastName } : {})
+        },
+        email: data.email,
+        password: data.password,
+        vehicles: {
+          color: data.vehicleColor,
+          plate: data.vehiclePlate,
+          capacity: data.vehicleCapacity,
+          vehicleType: data.vehicleType
+        }
+      }
+      const response = await axios.post(`http://localhost:8080/api/v1/captain/register`, payload)
+      const resData = response.data;
+      setCaptain(resData.captain)
+      localStorage.setItem("token", resData.token)
+      toast("Successfully Registered as a Captain")
+      form.reset()
+      navigate("/")
+    } catch (error) {
+      console.log(error);
+      if (error.message === "Network Error") {
+        toast("Network Error: Make sure your backend server is running on port 8080");
+        return;
+      }
+      const backendError = error.response?.data?.message || error.response?.data?.error?.[0]?.msg || error.response?.data?.errors?.[0]?.msg;
+      toast(backendError || "Something went wrong during registration");
+    } finally {
       setIsLoading(false)
-      // Handle success - redirect or show success message
-    }, 1500)
+    }
   }
 
   return (
@@ -210,10 +244,10 @@ export function CaptainRegisterForm() {
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="bike" />
+                            <RadioGroupItem value="motorcycle" />
                           </FormControl>
                           <FormLabel className="font-normal flex items-center gap-1">
-                            <Bike className="h-4 w-4" /> Bike
+                            <Bike className="h-4 w-4" /> Motorcycle
                           </FormLabel>
                         </FormItem>
                       </RadioGroup>

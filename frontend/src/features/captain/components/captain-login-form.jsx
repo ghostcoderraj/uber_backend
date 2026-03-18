@@ -1,17 +1,19 @@
 
-import { CardFooter } from "@/components/ui/card"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Mail, Lock, Eye, EyeOff, Car } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { NavLink } from "react-router-dom"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { NavLink, useNavigate } from "react-router-dom"
 import { Checkbox } from "@/components/ui/checkbox"
+import axios from "axios"
+import { toast } from "sonner"
+import { CaptainDataContext } from "../context/CaptainContext"
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -28,6 +30,8 @@ const loginFormSchema = z.object({
 export function CaptainLoginForm() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const { captain, setCaptain } = useContext(CaptainDataContext)
 
   const form = useForm({
     resolver: zodResolver(loginFormSchema),
@@ -38,14 +42,30 @@ export function CaptainLoginForm() {
     },
   })
 
-  function onSubmit(data) {
-    setIsLoading(true)
-    // Simulate API call
-    console.log(data)
-    setTimeout(() => {
+  async function onSubmit(data) {
+    try {
+      setIsLoading(true)
+      const response = await axios.post(`http://localhost:8080/api/v1/captain/login`, {
+        email: data.email,
+        password: data.password
+      })
+      const resData = response.data;
+      setCaptain(resData.captain)
+      localStorage.setItem("token", resData.token)
+      toast("Successfully Logged In as Captain")
+      form.reset()
+      navigate("/")
+    } catch (error) {
+      console.log(error);
+      if (error.message === "Network Error") {
+        toast("Network Error: Make sure your backend server is running on port 8080");
+        return;
+      }
+      const backendError = error.response?.data?.message || error.response?.data?.error?.[0]?.msg || error.response?.data?.errors?.[0]?.msg;
+      toast(backendError || "Invalid credentials");
+    } finally {
       setIsLoading(false)
-      // Handle success - redirect or show success message
-    }, 1500)
+    }
   }
 
   return (
