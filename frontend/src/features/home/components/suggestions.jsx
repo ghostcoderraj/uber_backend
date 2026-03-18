@@ -8,7 +8,7 @@ const SuggestionCard = ({ title, description, image, cta }) => (
         <h3 className="text-lg font-bold mb-1">{title}</h3>
         {description && <p className="text-sm text-gray-600 font-medium">{description}</p>}
       </div>
-      <img src={image} alt={title} className="w-16 h-16 object-contain" />
+      <img src={image} alt={title} className="w-20 h-20 object-contain" />
     </div>
     <div className="flex items-center gap-2 mt-4 text-sm font-medium">
       {cta}
@@ -22,26 +22,46 @@ const SuggestionCard = ({ title, description, image, cta }) => (
 const Suggestions = () => {
   return (
     <div className="w-full py-12 px-4 lg:px-16">
-      <h2 className="text-3xl font-bold mb-8">Suggestions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <SuggestionCard
-          title="Ride"
-          description="Go anywhere with Uber"
-          image="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,h_368,w_552/v1648734997/assets/05/1db1b3-4674-42f0-91de-d68f773cd735/original/Ride_150x150_pixels.png"
-          cta="Details"
-        />
-        <SuggestionCard
-          title="Reserve"
-          description="Book up to 90 days ahead"
-          image="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,h_368,w_552/v1648735232/assets/e5/222d4f-b64d-4ba3-ab27-52d192be5a36/original/Reserve_150x150_pixels.png"
-          cta="Details"
-        />
-        <SuggestionCard
-          title="Package"
-          description="Uber Connect"
-          image="https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,h_368,w_552/v1648735165/assets/07/28cba5-90f7-49cc-be2e-84b2cbd8db1d/original/Connect_150x150_pixels.png"
-          cta="Details"
-        />
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-3xl font-bold mb-8">Explore what you can do with uber</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SuggestionCard
+            title="Ride"
+            description="Go anywhere with Uber.Request a ride,hop in, and go."
+            image="https://mobile-content.uber.com/launch-experience/top_bar_rides_3d.png"
+            cta="Details"
+          />
+          <SuggestionCard
+            title="Reserve"
+            description="Reserve your ride in advance so you can relax on the day of your trip."
+            image="https://mobile-content.uber.com/uber_reserve/reserve_clock.png"
+            cta="Details"
+          />
+          <SuggestionCard
+            title="Intercity"
+            description="Get convenient,affordable outstation cabs anytime at your doorstep."
+            image="https://mobile-content.uber.com/launch-experience/intercity.png"
+            cta="Details"
+          />
+          <SuggestionCard
+            title="Shuttle"
+            description="Lower-cost shared rides on professionally driven bushes and vans."
+            image="https://mobile-content.uber.com/launch-experience/hcv_shuttle.png"
+            cta="Details"
+          />
+          <SuggestionCard
+            title="Parcel"
+            description="Uber makes same-day item delivery easier than ever."
+            image="https://cn-geo1.uber.com/static/mobile-content/Courier.png"
+            cta="Details"
+          />
+          <SuggestionCard
+            title="Rentals"
+            description="Request a trip for a block of time and make multiple stops."
+            image="https://mobile-content.uber.com/launch-experience/Hourly2021.png"
+            cta="Details"
+          />
+        </div>
       </div>
     </div>
   );
