@@ -1,5 +1,6 @@
 import axios from "axios";
 import { message } from "statuses";
+import captainModel from "../model/captain.model.js";
 
 // Function to get latitude and longitude from an address using OpenStreetMap (Nominatim)
 export const getAddressCoordinate = async (address) => {
@@ -60,13 +61,11 @@ export const getDistanceTime = async (originName, destinationName) => {
 
 export const getAutoCompleteSuggestions = async (input) => {
     try {
-        const { query } = req.query; // Extract query from request
-
-        if (!query) {
-            return res.status(400).json({ error: "Query parameter is required" })
+        if (!input) {
+            throw new Error("Query parameter is required");
         }
 
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&addressdetails=1&limit=5`;
 
         const response = await axios.get(url, {
             headers: { "User-Agent": "Uber" } // Required by Nomination
@@ -76,16 +75,16 @@ export const getAutoCompleteSuggestions = async (input) => {
             const suggestions = response.data.map((place) => ({
                 name: place.display_name,
                 lat: parseFloat(place.lat),
-                lng: parseFloat(place.lon)
+                lng: parseFloat(place.lng)
             }));
 
-            return res.status(404).json({ message: "No suggestions found" });
+            return suggestions;
         } else {
             throw new Error("Failed to fetch suggestions");
         }
     } catch (error) {
         console.error("Autocomplete error:", error);
-        return res.status(500).json({ error: "Internal server error" });
+        throw error;
     }
 }
 
@@ -97,7 +96,8 @@ export const getCaptainInTheRadius = async (lat, lng, radius) => {
                     $centerSphere: [[lng, lat], radius / 6378.1]
                 }
             }
-        })
+        });
+        return captains;
     } catch (error) {
         console.error(error);
         throw error;
