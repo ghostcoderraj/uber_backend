@@ -20,14 +20,22 @@ router.post("/create", authUser, body("pickup")
     createRide
 );
 
-router.get("/get-fare", authUser, body("pickup")
+router.get("/get-fare", authUser, query("pickup")
     .isString()
     .isLength({ min: 3 })
     .withMessage("Invalid pickup address"),
-    body("destination")
+    query("destination")
         .isString()
         .isLength({ min: 3 })
         .withMessage("Invalid destination address"),
-    getFare)
+
+    getFare
+);
+
+router.post("/confirm", authCaptain, body("rideId").isMongoId().withMessage("Invalid ride id"), confirmRide)
+
+router.get("/start-ride", authCaptain, query("rideId").isMongoId().withMessage("Invalid ride id"), query("otp").isString().isLength({ min: 6, max: 6 }).withMessage("Invalid otp"), startRide)
+
+router.post("/end-ride", authCaptain, body("rideId").isMongoId().withMessage("Invalid ride id"), endRide)
 
 export default router;

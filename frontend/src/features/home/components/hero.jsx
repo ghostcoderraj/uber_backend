@@ -1,34 +1,125 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Clock, MapPin, Navigation, ChevronDown } from "lucide-react";
+import axios from 'axios';
+import { SocketContext } from '../../global/context/SocketContext.jsx';
+import { UserDataContext } from '../../user/context/UserContext.jsx';
+import { useContext } from 'react';
 
 const Hero = () => {
+  const [pickup, setPickup] = useState('');
+  const [destination, setDestination] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeInput, setActiveInput] = useState(null); // 'pickup' or 'destination'
+  const [fareEstimates, setFareEstimates] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [rideStatus, setRideStatus] = useState('idle'); // idle, processing, tracking
+  const [rideData, setRideData] = useState(null);
+  
+  const { socket } = useContext(SocketContext);
+  const { user } = useContext(UserDataContext);
+
+  useEffect(() => {
+    if (socket && user?._id) {
+      // Connect user to their personal socket room
+      socket.emit("join", { userId: user._id, userType: "user" });
+
+      socket.on('ride-confirmed', (data) => {
+        setRideStatus('tracking');
+        setRideData(data);
+      });
+    }
+
+    return () => {
+      if (socket) socket.off('ride-confirmed');
+    };
+  }, [socket, user]);
+
+  // Fetch Autocomplete suggestions
+  const fetchSuggestions = async (inputStr) => {
+    if (inputStr.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/v1/maps/get-suggestions?input=${inputStr}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuggestions(response.data.suggestions || response.data);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    }
+  };
+
+  // Debounce input
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (activeInput === 'pickup') {
+        fetchSuggestions(pickup);
+      } else if (activeInput === 'destination') {
+        fetchSuggestions(destination);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [pickup, destination, activeInput]);
+
+  const handleSuggestionClick = (suggestion) => {
+    if (activeInput === 'pickup') {
+      setPickup(suggestion.name);
+    } else {
+      setDestination(suggestion.name);
+    }
+    setSuggestions([]);
+    setActiveInput(null);
+  };
+
+  const handleGetFare = async () => {
+    if (!pickup || !destination) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/v1/rides/get-fare?pickup=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFareEstimates(response.data);
+    } catch (error) {
+      console.error("Error getting fare:", error);
+    }
+  };
+
+  const handleConfirmRide = async () => {
+    if (!selectedVehicle) return;
+    try {
+      setRideStatus('processing');
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`http://localhost:8080/api/v1/rides/create`, {
+        pickup,
+        destination,
+        vehicleType: selectedVehicle
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // The API returns the created ride object
+      // Let's keep status as processing until socket confirms it!
+    } catch (error) {
+      console.error("Error creating ride:", error);
+      setRideStatus('idle');
+    }
+  };
+
   return (
     <div className="w-full mt-16 bg-white flex justify-center py-16">
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-12 px-4 lg:px-16">
+      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-12 px-4 lg:px-16">
         {/* Left side: Booking Widget Area */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center max-w-lg">
-
-          {/* Location Header */}
-          <div className="flex items-center gap-2 mb-6">
-            <MapPin size={16} className="text-black fill-black" />
-            <span className="text-sm font-medium">Delhi NCR, IN</span>
-            <span className="text-sm font-medium underline cursor-pointer text-gray-600 hover:text-black">Change city</span>
-          </div>
 
           <h1 className="text-[4rem] leading-[1.1] font-bold tracking-tight mb-8">
             Go anywhere with<br />Uber
           </h1>
 
-          {/* Pickup time selector */}
-          <button className="flex items-center gap-2 bg-[#f3f3f3] hover:bg-[#e2e2e2] px-4 py-2.5 rounded-full w-fit mb-6 transition-colors">
-            <Clock size={16} className="text-black fill-black" />
-            <span className="text-sm font-medium">Pickup now</span>
-            <ChevronDown size={16} className="text-black ml-1" />
-          </button>
-
           {/* Form Content */}
-          <div className="space-y-4 mb-6 relative">
+          <div className="space-y-4 mb-6 relative z-20">
             {/* Visual line connecting circles */}
             <div className="absolute left-[23px] top-[30px] bottom-[30px] w-0.5 bg-black z-0"></div>
 
@@ -40,11 +131,10 @@ const Hero = () => {
               <input
                 type="text"
                 placeholder="Pickup location"
+                value={pickup}
+                onChange={(e) => { setPickup(e.target.value); setActiveInput('pickup') }}
                 className="flex-1 bg-transparent border-none outline-none py-1 px-1 text-base placeholder-gray-500 font-medium"
               />
-              <button className="p-2 hover:bg-gray-200 rounded-full transition-colors mr-1">
-                <Navigation size={18} className="text-black fill-black" />
-              </button>
             </div>
 
             {/* Dropoff Input */}
@@ -55,37 +145,101 @@ const Hero = () => {
               <input
                 type="text"
                 placeholder="Dropoff location"
+                value={destination}
+                onChange={(e) => { setDestination(e.target.value); setActiveInput('destination') }}
                 className="flex-1 bg-transparent border-none outline-none py-1 px-1 text-base placeholder-gray-500 font-medium"
               />
             </div>
+
+            {/* Suggestions Dropdown */}
+            {suggestions.length > 0 && activeInput !== null && (
+              <div className="absolute w-full bg-white border border-gray-200 mt-2 rounded-lg shadow-xl overflow-hidden z-50">
+                {suggestions.map((suggestion, index) => (
+                  <div 
+                    key={index} 
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="p-3 border-b hover:bg-gray-100 cursor-pointer flex items-center gap-3"
+                  >
+                    <MapPin size={18} className="text-gray-500 shrink-0" />
+                    <span className="text-sm font-medium truncate">{suggestion.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-6 mt-4">
-            <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
+            <Button onClick={handleGetFare} className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
               See prices
             </Button>
-            <span className="text-sm font-medium underline cursor-pointer hover:text-gray-600">
-              Log in to see your recent activity
-            </span>
           </div>
 
         </div>
 
-        {/* Right side: Visual Area */}
+        {/* Right side: Visual Area or Fares */}
         <div className="hidden lg:block w-1/2 relative rounded-2xl overflow-hidden min-h-[500px]">
-          <img
-            src="https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=672/height=672/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy9jZTczNjUzMy1iMWE0LTQ3ZjktOTk0OS0zNWEzZGUyNTkyYzk="
-            alt="Travel Suitcase"
-            className="w-full h-full absolute inset-0 object-cover"
-          />
-          {/* Overlay Box */}
-          <div className="absolute bottom-6 left-6 right-6 bg-gradient-to-r from-[#b97a6e] to-[#995345] rounded-xl p-5 flex items-center justify-between text-white shadow-lg">
-            <span className="text-lg font-bold">Ready to travel?</span>
-            <Button className="bg-white text-black hover:bg-gray-100 rounded-full font-medium px-6 py-2 h-auto text-sm transition-colors">
-              Schedule ahead
-            </Button>
-          </div>
+          {rideStatus === 'processing' && (
+            <div className="w-full h-full bg-white p-8 shadow-2xl rounded-2xl z-10 border border-gray-100 flex flex-col items-center justify-center text-center">
+              <img src="https://i.pinimg.com/originals/3d/82/30/3d8230a10dfa9082269a23f169eed3d1.gif" alt="Looking for driver" className="w-48 h-48 mb-6 object-contain mix-blend-multiply" />
+              <h2 className="text-2xl font-bold mb-2">Looking for nearby drivers...</h2>
+              <p className="text-gray-500 max-w-[250px]">Please wait while we connect you with the nearest available {selectedVehicle}.</p>
+            </div>
+          )}
+
+          {rideStatus === 'tracking' && (
+             <div className="w-full h-full bg-white p-8 shadow-2xl rounded-2xl z-10 border border-gray-100 flex flex-col justify-center">
+               <h2 className="text-3xl font-bold mb-2 text-green-600">Driver found!</h2>
+               <p className="text-xl mb-6 font-semibold text-gray-700">Your OTP: <span className="bg-gray-100 px-3 py-1 pb-2 rounded-md tracking-widest border border-gray-300 shadow-inner">{rideData?.otp}</span></p>
+               <div className="p-5 bg-gray-50 rounded-xl mb-4 border border-gray-100 shadow-sm flex items-center gap-4">
+                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-xl font-bold text-gray-500 overflow-hidden">
+                   {rideData?.captain?.fullname?.firstname?.[0]}
+                 </div>
+                 <div>
+                   <h3 className="font-bold text-xl">{rideData?.captain?.fullname?.firstname} {rideData?.captain?.fullname?.lastname}</h3>
+                   <p className="text-gray-600 font-medium">{rideData?.captain?.vehicles?.vehicleType.toUpperCase()} • <span className="text-black bg-yellow-100 px-2 rounded">{rideData?.captain?.vehicles?.plate}</span></p>
+                 </div>
+               </div>
+               <p className="text-gray-500 text-sm mt-4 text-center">Wait for the driver to arrive at your pickup location. Provide the OTP to start the ride safely.</p>
+             </div>
+          )}
+
+          {rideStatus === 'idle' && !fareEstimates && (
+            <img
+              src="https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=672/height=672/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy9jZTczNjUzMy1iMWE0LTQ3ZjktOTk0OS0zNWEzZGUyNTkyYzk="
+              alt="Travel Suitcase"
+              className="w-full h-full absolute inset-0 object-cover"
+            />
+          )}
+          
+          {rideStatus === 'idle' && fareEstimates && (
+            <div className="w-full h-full bg-white p-8 shadow-2xl rounded-2xl z-10 overflow-y-auto border border-gray-100 flex flex-col justify-center">
+              <h2 className="text-3xl font-bold mb-6">Choose a ride</h2>
+              {/* Fare options */}
+              <div className="space-y-4">
+                {Object.entries(fareEstimates).map(([type, price]) => (
+                  <div 
+                    key={type} 
+                    onClick={() => setSelectedVehicle(type)}
+                    className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${selectedVehicle === type ? 'border-black bg-gray-50' : 'border-transparent bg-white hover:border-gray-300'}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Placeholder icon */}
+                      <div className="w-16 h-12 bg-gray-200 rounded-lg flex items-center justify-center font-bold text-xs uppercase shadow-inner text-gray-700">{type}</div>
+                      <div>
+                        <h4 className="font-bold text-xl capitalize">{type}</h4>
+                        <p className="text-sm text-gray-500 font-medium">Nearest driver is 2 mins away</p>
+                      </div>
+                    </div>
+                    <div className="font-bold text-2xl">₹{price}</div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={handleConfirmRide} disabled={!selectedVehicle} className="w-full mt-6 py-6 text-lg">
+                {selectedVehicle ? `Confirm ${selectedVehicle.toUpperCase()}` : 'Select a vehicle'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { models } from "mongoose";
 import rideModel from "../model/ride.model.js"
-import { getAddressCoordinate, getDistanceTime ,getAutoCompleteSuggestions, getCaptainInTheRadius } from "../services/map.services.js";
-import {bcrypt} from "bcrypt";
+import crypto from 'crypto';
+import { getAddressCoordinate, getDistanceTime, getAutoCompleteSuggestions, getCaptainInTheRadius } from "../services/map.services.js";
+import { bcrypt } from "bcrypt";
 import { error } from "console";
-import { getFare } from "../controllers/rides.controller.js";
 import status from "statuses";
 
 export const createRideService = async({user, pickup, destination , vehicleType}) => {
@@ -24,27 +24,37 @@ export const getFareService = async(pickup,destination) => {
     if (!pickup || !destination){
         throw new Error('pickup and destination are required');
     }
-    const distanceTime = await getDistanceAndTime(pickup,destination);
+    const distanceTime = await getDistanceTime(pickup, destination);
+    
+    // Make sure we have the correct properties from distanceTime result
+    const distance_km = distanceTime.distance_km || ((distanceTime.distance?.value || 0) / 1000) || 10;
+    const duration_min = distanceTime.duration_min || ((distanceTime.duration?.value || 0) / 60) || 20;
 
     const baseFare = {
         auto:30,
         car:50,
-        bike:20
+        moto:20
     }
 
     const perKmRate = {
         auto:10,
         car:15,
-        bike:8
+        moto:8
+    }
+
+    const perMinuteRate = {
+        auto:2,
+        car:3,
+        moto:1.5
     }
     
     const fare = {
-            auto: Math.round(baseFare.auto + (distance_km * perKmRate.auto) + (duration_min * perMinuteRate.auto)),
-            car: Math.round(baseFare.car + (distance_km * perKmRate.car) + (duration_min * perMinuteRate.car)),
-            bike: Math.round(baseFare.bike + (distance_km * perKmRate.bike) + (duration_min * perMinuteRate.bike))
-        };
+        auto: Math.round(baseFare.auto + (distance_km * perKmRate.auto) + (duration_min * perMinuteRate.auto)),
+        car: Math.round(baseFare.car + (distance_km * perKmRate.car) + (duration_min * perMinuteRate.car)),
+        moto: Math.round(baseFare.moto + (distance_km * perKmRate.moto) + (duration_min * perMinuteRate.moto))
+    };
 
-        return fare
+    return fare;
     
 }
 

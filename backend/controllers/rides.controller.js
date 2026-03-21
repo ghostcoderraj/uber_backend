@@ -48,12 +48,12 @@ export const getFare = async (req, res) => {
         return res.status(400).json({errors:errors.array()})
     }
 
-    const {pickup,destination} = req.body;
+    const {pickup,destination} = req.query;
 
     try{
         const fare = await getFareService(pickup , destination);
 
-        res.status(404).json({errors: "Fare not found"})
+        res.status(200).json(fare)
     }catch(error){
         console.log(error)
         res.status(404).json({error:"Fare not found"})
@@ -73,7 +73,7 @@ export const confirmRide = async (req, res) => {
         const ride = await confirmRideService({rideId , captain:req.captain})
 
         sendMessageToSocketId(ride.user.socketId,{
-            event: "new-ride",
+            event: "ride-confirmed",
             data: ride
         })
 
