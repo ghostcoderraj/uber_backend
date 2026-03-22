@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 
 const LoginPromo = () => {
     return (
@@ -15,12 +16,16 @@ const LoginPromo = () => {
                         View past trips, tailored suggestions, support resources, and more.
                     </p>
                     <div className="flex items-center gap-6">
-                        <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
-                            Log in to your account
-                        </Button>
-                        <span className="text-base font-medium border-b border-black cursor-pointer hover:text-gray-600 hover:border-gray-600 transition-colors pb-0.5">
-                            Create an account
-                        </span>
+                        <Link to="/login?type=user">
+                            <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
+                                Log in to your account
+                            </Button>
+                        </Link>
+                        <Link to="/user-register">
+                            <span className="text-base font-medium border-b border-black cursor-pointer hover:text-gray-600 hover:border-gray-600 transition-colors pb-0.5">
+                                Create an account
+                            </span>
+                        </Link>
                     </div>
                 </div>
 

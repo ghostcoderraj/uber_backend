@@ -30,7 +30,9 @@ const Home = () => {
         description="Make money on your schedule with deliveries or rides—or both. You can use your own car or choose a rental through Uber."
         image="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2069&q=80"
         ctaPrimary="Get started"
+        hrefPrimary="/login?type=captain"
         ctaSecondary="Already have an account? Sign in"
+        hrefSecondary="/login?type=captain"
         imageLeft={true}
       />
 
@@ -40,7 +42,9 @@ const Home = () => {
         description="Uber for Business is a platform for managing global rides and meals, and local deliveries, for companies of any size"
         image="https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=576/height=324/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy9kNjQ4ZjViNi1iYjVmLTQ1MGUtODczMy05MGFlZmVjYmQwOWUuanBn"
         ctaPrimary="Get started"
+        hrefPrimary="/login?type=user"
         ctaSecondary="Check out our solutions"
+        hrefSecondary="/login?type=user"
         imageLeft={false}
       />
 
@@ -50,6 +54,7 @@ const Home = () => {
         description="Connect with thousands of drivers and earn more per week with Uber's free fleet management tools."
         image="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=2070"
         ctaPrimary="Get started"
+        hrefPrimary="/login?type=captain"
         imageLeft={true}
       />
 

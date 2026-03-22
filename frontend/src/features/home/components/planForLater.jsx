@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar, Clock, Equal } from "lucide-react";
 
 const PlanForLater = () => {
+    const [reserveDate, setReserveDate] = useState('');
+    const [reserveTime, setReserveTime] = useState('');
     return (
         <div className="w-full py-16 px-4 lg:px-16 bg-white">
             <div className="max-w-7xl mx-auto">
@@ -24,20 +26,29 @@ const PlanForLater = () => {
                                 <div className="flex gap-4 mb-4">
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-700 mb-1">Date</p>
-                                        <button className="w-full flex items-center gap-2 bg-[#f3f3f3] hover:bg-[#e2e2e2] px-4 py-3 rounded-lg transition-colors">
-                                            <Calendar size={18} className="text-black" />
-                                            <span className="text-base font-medium">Date</span>
-                                        </button>
+                                        <div className="relative w-full flex items-center bg-[#f3f3f3] hover:bg-[#e2e2e2] rounded-lg transition-colors overflow-hidden px-4 py-3">
+                                            <Calendar size={18} className="text-black absolute left-4 z-10 pointer-events-none" />
+                                            <input 
+                                                type="date"
+                                                value={reserveDate}
+                                                onChange={(e) => setReserveDate(e.target.value)}
+                                                className="w-full bg-transparent outline-none pl-8 text-base font-medium text-black cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:z-20 cursor-pointer"
+                                            />
+                                            {/* We hide the default calendar icon and make the entire box clickable by stretching the native ghost icon */}
+                                        </div>
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-700 mb-1">Time</p>
-                                        <button className="w-full flex items-center justify-between bg-[#f3f3f3] hover:bg-[#e2e2e2] px-4 py-3 rounded-lg transition-colors">
-                                            <div className="flex items-center gap-2">
-                                                <Clock size={18} className="text-black" />
-                                                <span className="text-base font-medium">Time</span>
-                                            </div>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black"><path d="m6 9 6 6 6-6" /></svg>
-                                        </button>
+                                        <div className="relative w-full flex items-center bg-[#f3f3f3] hover:bg-[#e2e2e2] rounded-lg transition-colors overflow-hidden px-4 py-3">
+                                            <Clock size={18} className="text-black absolute left-4 z-10 pointer-events-none" />
+                                            <input 
+                                                type="time"
+                                                value={reserveTime}
+                                                onChange={(e) => setReserveTime(e.target.value)}
+                                                className="w-full bg-transparent outline-none pl-8 text-base font-medium text-black cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:z-20 cursor-pointer"
+                                            />
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black absolute right-4 z-10 pointer-events-none"><path d="m6 9 6 6 6-6" /></svg>
+                                        </div>
                                     </div>
                                 </div>
                                 <button className="w-full py-4 bg-black hover:bg-[#333333] text-white text-base font-medium rounded-lg transition-colors mt-2">

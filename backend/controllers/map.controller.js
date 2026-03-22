@@ -31,4 +31,17 @@ export const getDistanceTime = async (req, res) => {
     }
 };
 
-export const getAutoCompleteSuggestions = async (req, res) => { };
+export const getAutoCompleteSuggestions = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        const { input } = req.query;
+        const suggestions = await getAutoCompleteService(input);
+        res.status(200).json({ suggestions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch suggestions" });
+    }
+};

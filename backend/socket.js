@@ -1,4 +1,4 @@
-import socketIO from "socekt.io";
+import socketIO from "socket.io";
 import userModel from "./model/user.model.js";
 import captainModel from "./model/captain.model.js";
 
@@ -27,7 +27,7 @@ function initializeSocket(server){
         socket.on("update-location-captain",async(data)=>{
             const{userId,location} = data;
 
-            await captainModel.findByIdAndUpdate(usrId,{location:{
+            await captainModel.findByIdAndUpdate(userId,{location:{
                 ltd:location.ltd,
                 lng:location.lng
             }});

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { SocketContext } from '../../global/context/SocketContext.jsx';
 import { UserDataContext } from '../../user/context/UserContext.jsx';
 import { useContext } from 'react';
+import LiveMap from '../../global/components/LiveMap.jsx';
 
 const Hero = () => {
   const [pickup, setPickup] = useState('');
@@ -15,6 +16,8 @@ const Hero = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [rideStatus, setRideStatus] = useState('idle'); // idle, processing, tracking
   const [rideData, setRideData] = useState(null);
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [dropoffCoords, setDropoffCoords] = useState(null);
   
   const { socket } = useContext(SocketContext);
   const { user } = useContext(UserDataContext);
@@ -75,6 +78,19 @@ const Hero = () => {
     setActiveInput(null);
   };
 
+  const getCoords = async (address) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/v1/maps/get-coordinates?address=${encodeURIComponent(address)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const c = response.data.coordinates;
+      return { lat: c.lat || c.ltd, lng: c.lng || c.lon };
+    } catch (e) {
+      return null;
+    }
+  };
+
   const handleGetFare = async () => {
     if (!pickup || !destination) return;
     try {
@@ -83,6 +99,12 @@ const Hero = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFareEstimates(response.data);
+
+      const pCoords = await getCoords(pickup);
+      const dCoords = await getCoords(destination);
+      if (pCoords) setPickupCoords(pCoords);
+      if (dCoords) setDropoffCoords(dCoords);
+
     } catch (error) {
       console.error("Error getting fare:", error);
     }
@@ -133,6 +155,7 @@ const Hero = () => {
                 placeholder="Pickup location"
                 value={pickup}
                 onChange={(e) => { setPickup(e.target.value); setActiveInput('pickup') }}
+                onFocus={() => { setActiveInput('pickup'); fetchSuggestions(pickup); }}
                 className="flex-1 bg-transparent border-none outline-none py-1 px-1 text-base placeholder-gray-500 font-medium"
               />
             </div>
@@ -147,6 +170,7 @@ const Hero = () => {
                 placeholder="Dropoff location"
                 value={destination}
                 onChange={(e) => { setDestination(e.target.value); setActiveInput('destination') }}
+                onFocus={() => { setActiveInput('destination'); fetchSuggestions(destination); }}
                 className="flex-1 bg-transparent border-none outline-none py-1 px-1 text-base placeholder-gray-500 font-medium"
               />
             </div>
@@ -205,37 +229,39 @@ const Hero = () => {
           )}
 
           {rideStatus === 'idle' && !fareEstimates && (
-            <img
-              src="https://cn-geo1.uber.com/image-proc/crop/resizecrop/udam/format=auto/width=672/height=672/srcb64=aHR0cHM6Ly90Yi1zdGF0aWMudWJlci5jb20vcHJvZC91ZGFtLWFzc2V0cy9jZTczNjUzMy1iMWE0LTQ3ZjktOTk0OS0zNWEzZGUyNTkyYzk="
-              alt="Travel Suitcase"
-              className="w-full h-full absolute inset-0 object-cover"
-            />
+            <LiveMap />
           )}
           
           {rideStatus === 'idle' && fareEstimates && (
-            <div className="w-full h-full bg-white p-8 shadow-2xl rounded-2xl z-10 overflow-y-auto border border-gray-100 flex flex-col justify-center">
-              <h2 className="text-3xl font-bold mb-6">Choose a ride</h2>
+            <div className="absolute inset-0 z-0">
+               <LiveMap pickupCoords={pickupCoords} dropoffCoords={dropoffCoords} />
+            </div>
+          )}
+          
+          {rideStatus === 'idle' && fareEstimates && (
+            <div className="absolute bottom-0 w-full bg-white p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] rounded-t-3xl z-10 max-h-[80%] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-4">Choose a ride</h2>
               {/* Fare options */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {Object.entries(fareEstimates).map(([type, price]) => (
                   <div 
                     key={type} 
                     onClick={() => setSelectedVehicle(type)}
-                    className={`flex justify-between items-center p-4 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${selectedVehicle === type ? 'border-black bg-gray-50' : 'border-transparent bg-white hover:border-gray-300'}`}
+                    className={`flex justify-between items-center p-3 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${selectedVehicle === type ? 'border-black bg-gray-50' : 'border-transparent bg-white hover:border-gray-300'}`}
                   >
                     <div className="flex items-center gap-4">
                       {/* Placeholder icon */}
-                      <div className="w-16 h-12 bg-gray-200 rounded-lg flex items-center justify-center font-bold text-xs uppercase shadow-inner text-gray-700">{type}</div>
+                      <div className="w-14 h-10 bg-gray-200 rounded-lg flex items-center justify-center font-bold text-xs uppercase shadow-inner text-gray-700">{type}</div>
                       <div>
-                        <h4 className="font-bold text-xl capitalize">{type}</h4>
-                        <p className="text-sm text-gray-500 font-medium">Nearest driver is 2 mins away</p>
+                        <h4 className="font-bold text-lg capitalize">{type}</h4>
+                        <p className="text-xs text-gray-500 font-medium">Nearest driver is 2 mins away</p>
                       </div>
                     </div>
-                    <div className="font-bold text-2xl">₹{price}</div>
+                    <div className="font-bold text-xl">₹{price}</div>
                   </div>
                 ))}
               </div>
-              <Button onClick={handleConfirmRide} disabled={!selectedVehicle} className="w-full mt-6 py-6 text-lg">
+              <Button onClick={handleConfirmRide} disabled={!selectedVehicle} className="w-full mt-4 py-6 text-lg">
                 {selectedVehicle ? `Confirm ${selectedVehicle.toUpperCase()}` : 'Select a vehicle'}
               </Button>
             </div>

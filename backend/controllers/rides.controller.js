@@ -3,6 +3,7 @@ import { createRideService, getFareService, confirmRideService, startRideService
 import { getAddressCoordinate, getAutoCompleteSuggestions, getDistanceTime, getCaptainInTheRadius, getCaptainInTheRadius } from "../services/map.services.js";
 import rideModel from "../model/ride.model.js";
 import { error } from "console";
+import { sendMessageToSocketId } from "../socket.js";
 
 
 export const createRide = async (req, res) => {

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 
-const PromoSection = ({ title, description, image, ctaPrimary, ctaSecondary, imageLeft = false }) => {
+const PromoSection = ({ title, description, image, ctaPrimary, ctaSecondary, hrefPrimary, hrefSecondary, imageLeft = false }) => {
     const TextContent = () => (
         <div className="flex flex-col justify-center max-w-lg lg:pr-12">
             <h2 className="text-[3.25rem] leading-[1.1] font-bold tracking-tight mb-6">
@@ -12,14 +13,30 @@ const PromoSection = ({ title, description, image, ctaPrimary, ctaSecondary, ima
             </p>
             <div className="flex gap-4">
                 {ctaPrimary && (
-                    <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
-                        {ctaPrimary}
-                    </Button>
+                    hrefPrimary ? (
+                        <Link to={hrefPrimary}>
+                            <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
+                                {ctaPrimary}
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Button className="py-6 px-6 text-base font-medium rounded-lg text-white bg-black hover:bg-[#333333] transition-colors">
+                            {ctaPrimary}
+                        </Button>
+                    )
                 )}
                 {ctaSecondary && (
-                    <Button variant="ghost" className="py-6 px-6 text-base font-medium underline text-black hover:bg-transparent hover:text-gray-600 transition-colors">
-                        {ctaSecondary}
-                    </Button>
+                    hrefSecondary ? (
+                         <Link to={hrefSecondary}>
+                             <Button variant="ghost" className="py-6 px-6 text-base font-medium underline text-black hover:bg-transparent hover:text-gray-600 transition-colors">
+                                 {ctaSecondary}
+                             </Button>
+                         </Link>
+                    ) : (
+                        <Button variant="ghost" className="py-6 px-6 text-base font-medium underline text-black hover:bg-transparent hover:text-gray-600 transition-colors">
+                            {ctaSecondary}
+                        </Button>
+                    )
                 )}
             </div>
         </div>

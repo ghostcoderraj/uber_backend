@@ -4,7 +4,7 @@ import captainModel from "../model/captain.model.js";
 
 // Function to get latitude and longitude from an address using OpenStreetMap (Nominatim)
 export const getAddressCoordinate = async (address) => {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=in`;
 
     try {
         const response = await axios.get(url, {
@@ -65,7 +65,7 @@ export const getAutoCompleteSuggestions = async (input) => {
             throw new Error("Query parameter is required");
         }
 
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&addressdetails=1&limit=5`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&addressdetails=1&countrycodes=in&limit=5`;
 
         const response = await axios.get(url, {
             headers: { "User-Agent": "Uber" } // Required by Nomination

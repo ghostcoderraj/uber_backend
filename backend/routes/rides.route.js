@@ -34,7 +34,7 @@ router.get("/get-fare", authUser, query("pickup")
 
 router.post("/confirm", authCaptain, body("rideId").isMongoId().withMessage("Invalid ride id"), confirmRide)
 
-router.get("/start-ride", authCaptain, query("rideId").isMongoId().withMessage("Invalid ride id"), query("otp").isString().isLength({ min: 6, max: 6 }).withMessage("Invalid otp"), startRide)
+router.get("/start-ride", authCaptain, query("rideId").isMongoId().withMessage("Invalid ride id"), query("otp").isString().isLength({ min: 4, max: 4 }).withMessage("Invalid otp"), startRide)
 
 router.post("/end-ride", authCaptain, body("rideId").isMongoId().withMessage("Invalid ride id"), endRide)
 
